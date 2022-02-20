@@ -1,0 +1,134 @@
+getgenv().autoClick = false
+getgenv().autoRebirth = false
+getgenv().autoHatch = false
+getgenv().autoCraft = false
+
+local remotePath = game:GetService("ReplicatedStorage").Events
+local functionPath = game:GetService("ReplicatedStorage").Functions
+
+function autoTap()
+    spawn(function()
+        while wait() do 
+            if not autoClick then break end;
+            remotePath.Click:FireServer()
+            wait()
+        end
+    end)
+end
+
+function autoReb(rebirthAmount)
+    spawn(function()
+        while wait() do
+            if not autoRebirth then break end;
+            remotePath.Rebirth:FireServer(rebirthAmount)
+            wait()
+        end
+    end)
+end
+
+function buyEgg(eggType)
+    spawn(function()
+        while wait() do
+            if not autoHatch then break end;
+            functionPath.Unbox:InvokeServer(eggType, "Triple")
+        end
+    end)
+end
+
+function allCraft()
+    spawn(function()
+        while wait() do 
+            if not autoCraft then break end;
+            functionPath.Request:InvokeServer("CraftAll", {})
+        end
+    end)
+end
+
+function worldBoost(World)
+    spawn(function()
+        remotePath.WorldBoost:FireServer(World)
+    end)
+end
+
+function getCurrentPlayerPOS()
+    local plr = game.Players.LocalPlayer;
+    if plr.Character then
+       return plr.Character.HumanoidRootPart.Position;
+    end
+    return false;
+end
+
+function teleportTO(placeCFrame)
+    local plr = game.Players.LocalPlayer
+    if plr.Character then
+        plr.Character.HumanoidRootPart.CFrame = placeCFrame;
+    end
+end
+function teleportWorld(world)
+    if game:GetService("Workspace").Scripts.TeleportTo:FindFirstChild(world) then
+        return teleportTO(game:GetService("Workspace").Scripts.TeleportTo[world].CFrame)
+    else
+        return false
+    end
+end
+
+local library = loadstring(game:HttpGet(('https://raw.githubusercontent.com/AikaV3rm/UiLib/master/Lib.lua')))()
+
+local w = library:CreateWindow("Rebirth Champions X")
+
+local a = w:CreateFolder("Farming")
+
+local b = w:CreateFolder("Egg")
+
+local c = w:CreateFolder("Teleport")
+
+b:DestroyGui()
+
+a:Toggle("Auto Click",function(bool)
+    getgenv().autoClick = bool
+    if bool then
+        autoTap()
+    end
+end)
+
+local selectedRebirth;
+a:Dropdown("Rebirth Button",{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17},true,function(value)
+    selectedRebirth = value;
+end)
+
+a:Toggle("Auto Rebirth",function(bool)
+    getgenv().autoRebirth = bool
+    if bool and selectedRebirth then
+        autoReb(tonumber(selectedRebirth));
+    end
+end)
+
+a:Toggle("Auto Craft",function(bool)
+    getgenv().autoCraft = bool
+    if bool and selectedRebirth then
+        allCraft();
+    end
+end)
+
+local selectedEgg;
+b:Dropdown("Egg Name",{"Basic","Mythic","Forest","Beach","Atlantis","Desert","Winter","Volcano"},true,function(value)
+    selectedEgg = value;
+end)
+b:Toggle("Auto Open",function(bool)
+    getgenv().autoHatch = bool
+    if bool and selectedEgg then
+        buyEgg(selectedEgg)
+    end
+end)
+
+local selectedWorld;
+c:Dropdown("Worlds",{"Spawn","Forest","Beach", "Atlantis", "Desert", "Winter", "Volcano"},true,function(value)
+    selectedWorld = value;
+end)
+
+c:Button("Teleport",function()
+    if selectedWorld then
+        teleportWorld(selectedWorld)
+        worldBoost(selectedWorld)
+    end
+end)
